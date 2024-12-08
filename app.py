@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 import gradio as gr
 import google.generativeai as genai
@@ -11,19 +12,29 @@ import matplotlib.pyplot as plt
 # Configure Google Generative AI
 GOOGLE_API_KEY = "AIzaSyBxv2Ssm0SZCEGx7oJJwW5plWXZKnTUQvQ"  # Replace with your actual API key
 genai.configure(api_key=GOOGLE_API_KEY)
+
 # Load the trained model
 model = tf.keras.models.load_model('final_model.h5')  # Update this path
 class_names = ['fs', 'nt', 'se', 'tf']  # Update class names if needed
 class_to_number = {
-    'fs': "B",
-    'nt': "D",
-    'se': "C",
-    'tf': "A"
+    'fs': "B (5-7 years)",
+    'nt': "D (10-12 years)", 
+    'se': "C (7-9 years)",
+    'tf': "A (3-5 years)"
 }
 
 # Create necessary directories
 SPECTROGRAM_FOLDER = 'spectrograms'
 os.makedirs(SPECTROGRAM_FOLDER, exist_ok=True)
+
+# Initialize prediction history DataFrame
+prediction_history = pd.DataFrame(columns=[
+    'Name', 
+    'Real Age', 
+    'Real Age Group', 
+    'Predicted Age Group', 
+    'Prediction Confidence'
+])
 
 # Initial Prompt for Chatbot
 INITIAL_PROMPT = "Hello! I'm here to assist you with understanding your child's speech development. Please provide details about your child's voice recording or ask any questions about speech milestones."
@@ -50,10 +61,25 @@ def audio_to_spectrogram(audio_path, save_path):
         print(f"Error in audio_to_spectrogram: {e}")
         raise
 
-def predict_age(audio_file):
-    """Predict age based on audio input."""
+def get_age_group(age):
+    """Determine age group based on child's actual age."""
+    if 3 <= age < 5:
+        return 'A (3-5 years)'
+    elif 5 <= age < 7:
+        return 'B (5-7 years)'
+    elif 7 <= age < 9:
+        return 'C (7-9 years)'
+    elif 10 <= age < 12:
+        return 'D (10-12 years)'
+    else:
+        return 'Unknown'
+
+def predict_age(audio_file, child_name, child_age):
+    """Predict age based on audio input and store prediction history."""
+    global prediction_history
+    
     if audio_file is None:
-        return "No audio file provided", "0%"
+        return "No audio file provided", "0%", prediction_history
     
     try:
         # Create a unique name for the spectrogram image
@@ -77,14 +103,29 @@ def predict_age(audio_file):
         # Clean up the spectrogram image
         os.remove(spectrogram_path)
         
-        # Get the predicted age category
+        # Get the predicted age category with group
         result = class_to_number[predicted_class]
         
-        return f"Predicted Age Category: {result}", f"Confidence: {confidence:.2f}%"
+        # Determine the real age group
+        real_age_group = get_age_group(child_age)
+        
+        # Create a new prediction record
+        new_prediction = pd.DataFrame({
+            'Name': [child_name],
+            'Real Age': [child_age],
+            'Real Age Group': [real_age_group],
+            'Predicted Age Group': [result],
+            'Prediction Confidence': [f"{confidence:.2f}%"]
+        })
+        
+        # Append to prediction history
+        prediction_history = pd.concat([prediction_history, new_prediction], ignore_index=True)
+        
+        return f"Predicted Age Category: {result}", f"Confidence: {confidence:.2f}%", prediction_history
     
     except Exception as e:
         print(f"Error in predict_age: {e}")
-        return f"Prediction Error: {str(e)}", "0%"
+        return f"Prediction Error: {str(e)}", "0%", prediction_history
 
 def chatbot_response(message, history):
     """Generate context-aware chatbot responses using Google Generative AI"""
@@ -133,24 +174,62 @@ def chatbot_response(message, history):
         return f"An error occurred: {str(e)}. Please try again.", ""
 
 # Create Gradio interface with tabs
-with gr.Blocks() as demo:
-    gr.Markdown("# Speech Development Assessment Tool")
+# (Previous imports and code remain the same)
+
+# Create Gradio interface with tabs
+with gr.Blocks(css="""
+    /* Target the tab container */
+    .gradio-container .tab-container {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    /* Center the tab buttons */
+    .gradio-container .tab-container button {
+        margin: 0 10px;
+    }
+""") as demo:
+    gr.Markdown("""
+    <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px;">
+        <h1>SONIC PINNACLE<br>Advancing Age-Linked Speech Analysis through AI</h1>
+    </div>
+    """, elem_id="title")
+    
+    gr.Markdown("""
+    <div align="center" style="max-width: 80%; margin: 0 auto;">
+    Sonic Pinnacle is an innovative AI-powered tool designed to assess and analyze children's speech development. 
+    By leveraging advanced machine learning algorithms, we provide insights into speech patterns, 
+    helping parents and professionals understand a child's linguistic progression.
+    Our cutting-edge technology transforms voice recordings into detailed spectral analyses, 
+    offering precise age-group predictions and developmental insights.
+    </div>
+    """, elem_id="description")
     
     with gr.Tabs():
         with gr.TabItem("Age Prediction", id="prediction"):
             with gr.Row():
                 with gr.Column():
+                    # Rearranged input fields: audio first, then name, then age
                     audio_input = gr.Audio(type="filepath", label="Upload Child's Voice Recording")
+                    child_name_input = gr.Textbox(label="Child's Name")
+                    child_age_input = gr.Number(label="Child's Age")
                     predict_btn = gr.Button("Predict Age Category")
                 
                 with gr.Column():
                     age_output = gr.Textbox(label="Predicted Age Category")
                     confidence_output = gr.Textbox(label="Prediction Confidence")
             
+            # Prediction history dataframe
+            prediction_history_output = gr.Dataframe(
+                headers=['Name', 'Real Age', 'Real Age Group', 'Predicted Age Group', 'Prediction Confidence'],
+                label="Prediction History"
+            )
+            
             predict_btn.click(
                 fn=predict_age, 
-                inputs=audio_input, 
-                outputs=[age_output, confidence_output]
+                inputs=[audio_input, child_name_input, child_age_input], 
+                outputs=[age_output, confidence_output, prediction_history_output]
             )
         
         with gr.TabItem("Speech Development Support", id="chatbot"):
