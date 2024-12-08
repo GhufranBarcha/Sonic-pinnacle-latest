@@ -145,7 +145,6 @@ with gr.Blocks() as demo:
             )
         
         with gr.TabItem("Speech Development Support", id="chatbot"):
-            # Change this line
             chatbot = gr.Chatbot(
                 value=[{"role": "assistant", "content": INITIAL_PROMPT}],  # Start with initial prompt
                 label="Speech Development Assistant",
@@ -162,7 +161,7 @@ with gr.Blocks() as demo:
             )
             
             clear.click(
-                lambda: [[None, INITIAL_PROMPT]], 
+                lambda: [{"role": "assistant", "content": INITIAL_PROMPT}],  # Reset to initial prompt
                 None, 
                 [chatbot], 
                 queue=False
