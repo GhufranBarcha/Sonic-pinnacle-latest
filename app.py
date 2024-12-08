@@ -5,6 +5,7 @@ import gradio as gr
 import google.generativeai as genai
 import soundfile as sf
 import librosa
+import librosa.display
 import matplotlib.pyplot as plt
 
 # Configure Google Generative AI
@@ -98,20 +99,28 @@ def chatbot_response(message, history):
     
     # Construct the full prompt
     full_prompt = f"""
-    Project Context: Speech Development Analysis Tool
+        Role: You are Dr. Speech, a virtual speech specialist assisting parents in understanding their child's speech development based on voice analysis results.
 
-    Conversation History:
-    {context}
+        Project Context: This tool uses an AI model that predicts a child's age group based on their voice recording. If the model predicts an age group much higher than the child's actual age, it suggests leading speech development. If it predicts a lower age group, it suggests lagging speech development. The group and their respective age are given below.
+        Group A: 3-5 years
+        Group B: 5-7 years
+        Group C: 7-9 years
+        Group D: 10-12 years
 
-    User's Current Message:
-    {message}
+        Conversation History:
+        {context}
 
-    Guidelines for Response:
-    - Provide a helpful, context-aware response
-    - Focus on child speech development insights
-    - Be supportive and informative
-    - Relate response to the project's goal of understanding speech development
-    """
+        User's Current Message:
+        {message}
+
+        Guidelines for Response:
+        - Provide professional, context-aware responses as a speech specialist.
+        - Offer specific insights on child speech development.
+        - Explain the implications of the model's age prediction in terms of speech growth (leading or lagging).
+        - Provide suggestions, tips, or advice related to speech development.
+        - Be supportive, empathetic, and informative.
+        - Keep responses concise and clear.
+        """
     
     try:
         # Generate response
@@ -169,4 +178,4 @@ with gr.Blocks() as demo:
 
 # Launch the Gradio app
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(share = True)
