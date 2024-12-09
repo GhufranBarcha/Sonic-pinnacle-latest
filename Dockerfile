@@ -8,8 +8,8 @@ WORKDIR /app
 COPY . /app
 
 # Install dependencies
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+RUN pip install uv \
+    && uv pip install --system -r requirements.txt
 
 # Expose the port that Gradio runs on
 EXPOSE 7860

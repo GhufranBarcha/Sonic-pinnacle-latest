@@ -10,7 +10,7 @@ import librosa.display
 import matplotlib.pyplot as plt
 
 # Configure Google Generative AI
-GOOGLE_API_KEY = "AIzaSyBxv2Ssm0SZCEGx7oJJwW5plWXZKnTUQvQ"  # Replace with your actual API key
+GOOGLE_API_KEY = "AIzaSyD-C-Crg8OTIA6obM7eY2J8OJ-p_GxXjuY"  # Replace with your actual API key
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Load the trained model
@@ -191,11 +191,10 @@ with gr.Blocks(css="""
     }
 """) as demo:
     gr.Markdown("""
-    <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px; text-align: center;">
         <h1>SONIC PINNACLE<br>Advancing Age-Linked Speech Analysis through AI</h1>
     </div>
     """, elem_id="title")
-    
     gr.Markdown("""
     <div align="center" style="max-width: 80%; margin: 0 auto;">
     Sonic Pinnacle is an innovative AI-powered tool designed to assess and analyze children's speech development. 
