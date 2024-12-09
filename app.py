@@ -256,4 +256,4 @@ with gr.Blocks(css="""
 
 # Launch the Gradio app
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(share = True)
