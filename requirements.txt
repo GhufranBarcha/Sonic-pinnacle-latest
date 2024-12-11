@@ -1,6 +1,6 @@
-tensorflow==2.17.0
-gradio==5.8.0
+gradio
 librosa==0.9.0
-matplotlib==3.9.2
+matplotlib
 numpy
-google-generativeai==0.8.3
+google-generativeai
+tensorflow

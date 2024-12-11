@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 # Configure Google Generative AI
 GOOGLE_API_KEY = "AIzaSyD-C-Crg8OTIA6obM7eY2J8OJ-p_GxXjuY"  # Replace with your actual API key
 genai.configure(api_key=GOOGLE_API_KEY)
+model1 = genai.GenerativeModel('gemini-1.5-flash')
 
 # Load the trained model
 model = tf.keras.models.load_model('final_model.h5')  # Update this path
@@ -130,8 +131,8 @@ def predict_age(audio_file, child_name, child_age):
 def chatbot_response(message, history):
     """Generate context-aware chatbot responses using Google Generative AI"""
     # Initialize the model
-    model = genai.GenerativeModel('gemini-1.5-flash')
     
+    model = model1
     # Prepare conversation history for context
     context = "\n".join([
         f"{msg['role']}: {msg['content']}" 
@@ -160,7 +161,7 @@ def chatbot_response(message, history):
         - Explain the implications of the model's age prediction in terms of speech growth (leading or lagging).
         - Provide suggestions, tips, or advice related to speech development.
         - Be supportive, empathetic, and informative.
-        - Keep responses concise and clear.
+        - Keep responses short, concise and clear.
         """
     
     try:
